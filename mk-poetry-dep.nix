@@ -33,7 +33,10 @@ let
       wheelFiles = builtins.filter (fileEntry: pypa.isWheelFileName fileEntry.file) files;
       # Group wheel files by their file name
       wheelFilesByFileName = lib.listToAttrs (map (fileEntry: lib.nameValuePair fileEntry.file fileEntry) wheelFiles);
-      selectedWheels = pypa.selectWheels python.stdenv.targetPlatform python (map (fileEntry: pypa.parseWheelFileName fileEntry.file) wheelFiles);
+      platform = if python.stdenv.targetPlatform.isDarwin then {
+        isDarwin=true; darwinArch="arm64"; isWindows=false; isLinux=false; darwinSdkVersion="12.3"; libc="libSystem"; parsed={cpu={name="aarch64";};};
+        } else python.stdenv.targetPlatform;
+      selectedWheels = pypa.selectWheels platform python (map (fileEntry: pypa.parseWheelFileName fileEntry.file) wheelFiles);
     in
     map (wheel: wheelFilesByFileName.${wheel.filename}) selectedWheels
   );
