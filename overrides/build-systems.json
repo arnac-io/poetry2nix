@@ -27049,9 +27049,6 @@
   "watchdog": [
     "setuptools"
   ],
-  "watchfiles": [
-    "setuptools"
-  ],
   "watchgod": [
     "setuptools"
   ],
