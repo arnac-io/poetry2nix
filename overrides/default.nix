@@ -756,11 +756,6 @@ lib.composeManyExtensions [
         propagatedBuildInputs = old.propagatedBuildInputs or [ ] ++ [ final.setuptools ];
       });
 
-      ddtrace = prev.ddtrace.overridePythonAttrs (old: {
-        buildInputs = old.buildInputs or [ ] ++
-          lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.IOKit ];
-      });
-
       deepspeed = prev.deepspeed.overridePythonAttrs (old: rec {
         CUDA_HOME = pkgs.symlinkJoin {
           name = "deepspeed-cuda-home";
