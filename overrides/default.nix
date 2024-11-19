@@ -353,40 +353,6 @@ lib.composeManyExtensions [
         '';
       });
 
-      bcrypt =
-        let
-          getCargoHash = version: {
-            "4.0.0" = "sha256-HvfRLyUhlXVuvxWrtSDKx3rMKJbjvuiMcDY6g+pYFS0=";
-            "4.0.1" = "sha256-lDWX69YENZFMu7pyBmavUZaalGvFqbHSHfkwkzmDQaY=";
-            "4.1.1" = "sha256-QYg1+DsZEdXB74vuS4SFvV0n5GXkuwHkOS9j1ogSTjA=";
-            "4.1.2" = "sha256-fTD1AKvyeni5ukYjK53gueKLey+rcIUjW/0R289xeb0=";
-            "4.1.3" = "sha256-Uag1pUuis5lpnus2p5UrMLa4HP7VQLhKxR5TEMfpK0s=";
-            "4.2.0" = "sha256-dOS9A3pTwXYkzPFFNh5emxJw7pSdDyY+mNIoHdwNdmg=";
-          }.${version} or (
-            lib.warn "Unknown bcrypt version: '${version}'. Please update getCargoHash." lib.fakeHash
-          );
-        in
-        prev.bcrypt.overridePythonAttrs (
-          old: {
-            buildInputs = old.buildInputs or [ ]
-              ++ [ pkgs.libffi ]
-              ++ lib.optionals (lib.versionAtLeast old.version "4" && stdenv.isDarwin)
-              [ pkgs.darwin.apple_sdk.frameworks.Security pkgs.libiconv ];
-            nativeBuildInputs = with pkgs;
-              old.nativeBuildInputs or [ ]
-                ++ lib.optionals (lib.versionAtLeast old.version "4") [ rustc cargo pkgs.rustPlatform.cargoSetupHook final.setuptools-rust ];
-          } // lib.optionalAttrs (lib.versionAtLeast old.version "4") {
-            cargoDeps =
-              pkgs.rustPlatform.fetchCargoTarball
-                {
-                  inherit (old) src;
-                  sourceRoot = "${old.pname}-${old.version}/src/_bcrypt";
-                  name = "${old.pname}-${old.version}";
-                  sha256 = getCargoHash old.version;
-                };
-            cargoRoot = "src/_bcrypt";
-          }
-        );
       bjoern = prev.bjoern.overridePythonAttrs (
         old: {
           buildInputs = old.nativeBuildInputs or [ ] ++ [ pkgs.libev ];
@@ -751,11 +717,6 @@ lib.composeManyExtensions [
         propagatedBuildInputs = old.propagatedBuildInputs or [ ] ++ [ final.setuptools ];
       });
 
-      ddtrace = prev.ddtrace.overridePythonAttrs (old: {
-        buildInputs = old.buildInputs or [ ] ++
-          lib.optionals pkgs.stdenv.isDarwin [ pkgs.darwin.IOKit ];
-      });
-
       deepspeed = prev.deepspeed.overridePythonAttrs (old: rec {
         CUDA_HOME = pkgs.symlinkJoin {
           name = "deepspeed-cuda-home";
@@ -882,7 +843,7 @@ lib.composeManyExtensions [
       };
 
       # FIXME: this is a workaround for https://github.com/nix-community/poetry2nix/issues/1161
-      eth-utils = prev.eth-utils.override { preferWheel = true; };
+      eth-utils = prev.eth-utils.overridePythonAttrs { preferWheel = true; };
 
       evdev = prev.evdev.overridePythonAttrs (_old: {
         preConfigure = ''
