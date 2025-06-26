@@ -1693,51 +1693,6 @@ lib.composeManyExtensions [
         }
       );
 
-      mypy = prev.mypy.overridePythonAttrs (
-        old:
-        let
-          # Compile mypy with mypyc, which makes mypy about 4 times faster. The compiled
-          # version is also the default in the wheels on Pypi that include binaries.
-          # is64bit: unfortunately the build would exhaust all possible memory on i686-linux.
-          MYPY_USE_MYPYC = stdenv.buildPlatform.is64bit;
-
-          envAttrs =
-            if old ? env
-            then { env = old.env // { inherit MYPY_USE_MYPYC; }; }
-            else { inherit MYPY_USE_MYPYC; };
-        in
-        {
-          buildInputs = old.buildInputs or [ ] ++ [
-            final.types-typed-ast
-            final.types-setuptools
-          ]
-          ++ lib.optionals (lib.versionAtLeast old.version "0.990") [ final.types-psutil ];
-
-          # when testing reduce optimisation level to drastically reduce build time
-          # (default is 3)
-          # MYPYC_OPT_LEVEL = 1;
-        } // envAttrs // lib.optionalAttrs (old.format != "wheel") {
-          # FIXME: Remove patch after upstream has decided the proper solution.
-          #        https://github.com/python/mypy/pull/11143
-          patches = old.patches or [ ] ++ lib.optionals (lib.versionAtLeast old.version "0.900" && lib.versionOlder old.version "0.940") [
-            (pkgs.fetchpatch {
-              url = "https://github.com/python/mypy/commit/f1755259d54330cd087cae763cd5bbbff26e3e8a.patch";
-              sha256 = "sha256-5gPahX2X6+/qUaqDQIGJGvh9lQ2EDtks2cpQutgbOHk=";
-            })
-          ] ++ lib.optionals (lib.versionAtLeast old.version "0.940" && lib.versionOlder old.version "0.960") [
-            (pkgs.fetchpatch {
-              url = "https://github.com/python/mypy/commit/e7869f05751561958b946b562093397027f6d5fa.patch";
-              sha256 = "sha256-waIZ+m3tfvYE4HJ8kL6rN/C4fMjvLEe9UoPbt9mHWIM=";
-            })
-          ] ++ lib.optionals (lib.versionAtLeast old.version "0.960" && lib.versionOlder old.version "0.971") [
-            (pkgs.fetchpatch {
-              url = "https://github.com/python/mypy/commit/2004ae023b9d3628d9f09886cbbc20868aee8554.patch";
-              sha256 = "sha256-y+tXvgyiECO5+66YLvaje8Bz5iPvfWNIBJcsnZ2nOdI=";
-            })
-          ];
-        }
-      );
-
       mysqlclient = prev.mysqlclient.overridePythonAttrs (
         old: {
           nativeBuildInputs = old.nativeBuildInputs or [ ] ++ [ pkg-config pkgs.libmysqlclient ];
