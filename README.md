@@ -604,6 +604,10 @@ poetry2nix.mkPoetryApplication {
 
 **A.** Have a look at the following document [edgecase.md](./docs/edgecases.md)
 
+**Q.** I'm getting 404 errors when poetry2nix tries to download packages from PyPI, what's wrong?
+
+**A.** This is likely due to PyPI's modern hash-based URL structure. See the [PyPI URL Issues guide](./docs/pypi-url-issues.md) for solutions.
+
 ## How-to guides
 
 - [Package and deploy Python apps faster with Poetry and Nix](https://www.youtube.com/watch?v=TbIHRHy7_JM)

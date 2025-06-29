@@ -258,6 +258,8 @@ lib.composeManyExtensions [
       arpeggio = prev.arpeggio.overridePythonAttrs (
         old: {
           nativeBuildInputs = old.nativeBuildInputs or [ ] ++ [ final.pytest-runner ];
+          # Note: Arpeggio uses modern PyPI hash-based URLs that may fail URL prediction.
+          # If you encounter 404 errors, the fetcher should automatically fall back to API queries.
         }
       );
 
@@ -3393,7 +3395,7 @@ lib.composeManyExtensions [
               };
             };
             "0.5.2" = {
-              # https://raw.githubusercontent.com/astral-sh/ruff/0.5.2/Cargo.lock
+              # https://raw.githubusercontent.com/astral-sh/ruff/0.5.6-Cargo.lock
               lockFile = ./ruff/0.5.6-Cargo.lock;
               outputHashes = {
                 "lsp-types-0.95.1" = "sha256-8Oh299exWXVi6A39pALOISNfp8XBya8z+KT/Z7suRxQ=";
