@@ -20,7 +20,7 @@ curl="curl            \
 echo "Trying to fetch with predicted URL: $predictedURL"
 
 # Check if we should use API-first approach
-if [[ "${useApiFirst:-false}" == "true" ]]; then
+if true; then
     echo "API-first mode enabled, querying pypi.org API directly"
     
     # Try to get the actual URL from PyPI JSON API first
