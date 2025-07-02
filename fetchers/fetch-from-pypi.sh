@@ -31,9 +31,14 @@ if [[ "${useApiFirst:-false}" == "true" ]]; then
         # Extract the URL for the specific file and version
         if url=$(echo "$api_response" | jq -r ".releases.\"$version\"[] | select(.filename == \"$file\") | .url" 2>/dev/null) && [[ -n "$url" && "$url" != "null" ]]; then
             echo "Found API URL: $url"
-            if $curl "$url" --output "$out" 2>/dev/null; then
-                echo "Successfully fetched using API-provided URL"
-                exit 0
+            if $curl "$url" --output "$out"; then
+                if [[ -s "$out" ]]; then
+                    echo "Successfully fetched using API-provided URL"
+                    exit 0
+                else
+                    echo "API URL returned empty file, falling back to predicted URL..."
+                    rm -f "$out"
+                fi
             else
                 echo "API URL failed, falling back to predicted URL..."
             fi
@@ -45,9 +50,17 @@ fi
 
 # Try the predicted URL first (or as fallback if API-first failed)
 echo "Attempting predicted URL: $predictedURL"
-if $curl "$predictedURL" --output "$out" 2>/dev/null; then
-    echo "Successfully fetched using predicted URL"
-    exit 0
+if $curl "$predictedURL" --output "$out"; then
+    # Verify that we actually got a valid file (not an error page)
+    if [[ -s "$out" ]]; then
+        echo "Successfully fetched using predicted URL"
+        exit 0
+    else
+        echo "Predicted URL returned empty file, falling back to API..."
+        rm -f "$out"
+    fi
+else
+    echo "Predicted URL failed with curl error"
 fi
 
 echo "Predicted URL '$predictedURL' failed with 404 (modern PyPI uses hash-based URLs)"
@@ -88,6 +101,12 @@ if ! $curl "$url" --output "$out"; then
     echo "  - The file has been removed from PyPI"
     echo "  - There's a temporary server issue"
     echo "  - The URL format has changed again"
+    exit 1
+fi
+
+# Verify we got a valid file
+if [[ ! -s "$out" ]]; then
+    echo "ERROR: Downloaded file is empty from URL: $url"
     exit 1
 fi
 
